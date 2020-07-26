@@ -4,6 +4,7 @@ const authorText = document.getElementById('author');
 const twitterBtn = document.getElementById('twitter');
 const newQuoteBtn = document.getElementById('new-quote');
 const loader = document.getElementById('loader');
+const quoteTextContainer = document.getElementById('quote-text-container');
 
 // Show loading
 function setLoading(loading) {
@@ -11,8 +12,27 @@ function setLoading(loading) {
   quoteContainer.hidden = loading;
 }
 
+let retries = 0;
+function fetchQuote() {
+  retries = 0;
+  quoteTextContainer.hidden = false;
+  authorText.innerText = '';
+  getQuote();
+}
+
+function hideQoute() {
+  setLoading(false);
+  quoteTextContainer.hidden = true;
+  authorText.innerText =
+    'There was an error getting a quote.\nPlease try again later.';
+}
+
 // Get quote from API
 async function getQuote() {
+  if (retries >= 5) {
+    return hideQoute();
+  }
+
   setLoading(true);
   const proxyUrl = 'https://quiet-harbor-57645.herokuapp.com/';
   const apiUrl =
@@ -32,6 +52,7 @@ async function getQuote() {
     setLoading(false);
   } catch (err) {
     // The API has issues with the single quote character, so we get another quote
+    ++retries;
     setTimeout(getQuote, 1000);
     console.log(err);
   }
@@ -46,8 +67,8 @@ function tweetQuote() {
 }
 
 // Event Listeners
-newQuoteBtn.addEventListener('click', getQuote);
+newQuoteBtn.addEventListener('click', fetchQuote);
 twitterBtn.addEventListener('click', tweetQuote);
 
 // On Load
-getQuote();
+fetchQuote();
